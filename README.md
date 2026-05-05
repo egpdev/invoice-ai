@@ -1,71 +1,105 @@
-# 🏛️ InvoiceAI: German Accounting Parser
+# 🏛️ InvoiceAI — KI-gestützte Rechnungsverarbeitung
 
-![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.32.2-FF4B4B.svg)
-![OpenAI/Groq](https://img.shields.io/badge/LLM-Groq%20Llama3-black.svg)
-![DATEV](https://img.shields.io/badge/Standard-DATEV-green.svg)
+<p align="center">
+  <strong>Automated financial data extraction for German accounting standards (DATEV).</strong><br>
+  Upload PDF invoices or photo receipts → get structured CSV, Excel, or XML in seconds.
+</p>
 
-**InvoiceAI** is an automated, AI-powered pipeline designed to extract structured financial data from German invoices. Built specifically with German accounting standards (DATEV) in mind, it utilizes modern LLMs (Groq Llama 3) and `pdfplumber` to process bulk PDFs with high accuracy.
-
-> 🔐 **Privacy First:** All data is processed locally and via secure API. No data is stored on the server.
-
----
-
-## 🚀 Features
-
-- **Bulk Upload Support:** Drag and drop 50+ PDF invoices at once for rapid processing.
-- **Intelligent Extraction:** Extracts critical DATEV fields: `Firma`, `Rechnungsdatum`, `Rechnungsnummer`, `Netto`, `MwSt`, `Brutto`, `IBAN`, `Währung`.
-- **Data Validation:** Automatically verifies the math (`Netto` + `MwSt` == `Brutto`). Problematic rows are instantly highlighted in red.
-- **Modern Dashboard UI:** Built with Streamlit, featuring a premium dark corporate theme and real-time insights (Total Volume, Unique Vendors).
-- **Multi-Language:** Seamless toggle between English and German (DE/EN) interfaces.
-- **DATEV XML Export:** Download the parsed results in CSV, Excel, or a generic DATEV XML format ready for accounting software.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.12-blue?logo=python" />
+  <img src="https://img.shields.io/badge/Streamlit-Cloud-ff4b4b?logo=streamlit" />
+  <img src="https://img.shields.io/badge/AI-Llama%204%20Scout-orange?logo=meta" />
+  <img src="https://img.shields.io/badge/License-Proprietary-red" />
+</p>
 
 ---
 
-## 🛠️ Tech Stack
+## 🚀 What is InvoiceAI?
 
-- **Frontend/UI:** [Streamlit](https://streamlit.io/)
-- **PDF Parsing:** `pdfplumber`
-- **AI/LLM Engine:** Groq API (`llama-3.3-70b-versatile`) via `openai` python client.
-- **Data Manipulation:** `pandas`
+InvoiceAI is a SaaS tool that uses **Large Language Models (LLM)** to extract structured financial data from German invoices and receipts — automatically.
+
+Instead of manually typing invoice numbers, amounts, and tax rates into spreadsheets, accountants simply upload their documents and download a ready-to-use DATEV-compatible file.
+
+### Key Features
+
+| Feature | Description |
+|---|---|
+| 📄 **Multimodal Input** | Supports PDF documents **and** photo receipts (JPG/PNG) via AI Vision |
+| 🧮 **MwSt Validation** | Automatic Netto + MwSt vs. Brutto check with red highlighting on errors |
+| 📊 **DATEV Export** | One-click export to CSV (semicolon), Excel (.xlsx), or XML |
+| 🔐 **DSGVO Compliant** | Zero data retention — no files or data are stored on our servers |
+| 👤 **User Accounts** | Registration, login, and credit-based billing system |
+| 🔧 **Admin Panel** | Full user management and credit top-up dashboard |
+| 🌍 **Multilingual** | Full DE/EN interface localization |
 
 ---
 
-## ⚙️ Quick Start
+## 🏗️ Tech Stack
 
-### 1. Clone the repository
+- **Frontend:** Streamlit (Python)
+- **AI Models:** Meta Llama 4 Scout (Vision) + Llama 3.3 70B (Text) via Groq API
+- **PDF Parsing:** pdfplumber
+- **Database:** SQLite (user auth & credits)
+- **Deployment:** Streamlit Cloud
+
+---
+
+## 📸 Screenshots
+
+### Landing Page
+> Professional German-language landing page with pricing and feature cards.
+
+### Dashboard
+> Clean dark-mode interface with file upload, metrics cards, and data grid.
+
+### Admin Panel
+> Full user management with credit top-up functionality.
+
+---
+
+## 💰 Business Model
+
+- New users receive **10 free credits** upon registration
+- **1 credit = 1 processed invoice**
+- Credits can be purchased by contacting the administrator
+- Admin panel enables manual credit top-up after payment
+
+---
+
+## 🛠️ Local Development
+
 ```bash
-git clone https://github.com/yourusername/invoiceai.git
-cd invoiceai
-```
+# Clone the repository
+git clone https://github.com/egpdev/invoice-ai.git
+cd invoice-ai
 
-### 2. Install dependencies
-```bash
+# Install dependencies
 pip install -r requirements.txt
-```
 
-### 3. Environment Variables
-Create a `.env` file in the root directory (you can copy `.env.example`) and add your Groq API key:
-```env
-GROQ_API_KEY=your_groq_api_key_here
-```
+# Set your Groq API key
+echo "GROQ_API_KEY=gsk_your_key_here" > .env
 
-### 4. Run the application
-```bash
+# Run the app
 streamlit run app.py
 ```
-Open `http://localhost:8501` in your browser.
 
 ---
 
-## 💡 How it works
+## 📋 Environment Variables
 
-1. `pdfplumber` extracts the raw text from the uploaded PDF in-memory.
-2. The text is passed to the Groq API with a highly optimized, strict prompt that forces a structured JSON output mapped to German accounting fields.
-3. The response is parsed, validated, and displayed in an interactive Pandas DataFrame.
+| Variable | Description |
+|---|---|
+| `GROQ_API_KEY` | Your Groq API key for LLM inference |
 
 ---
 
-## 📝 License
+## 📄 License
 
-This project is open-source and available under the [MIT License](LICENSE).
+This is a proprietary SaaS product. All rights reserved.
+
+---
+
+<p align="center">
+  Built with ❤️ in Germany<br>
+  <a href="https://groq.com">Powered by Groq</a>
+</p>
