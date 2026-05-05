@@ -1,18 +1,17 @@
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 import os
 
 def send_reset_email(to_email, username, reset_code):
-    """Send a password reset email. Returns True on success."""
+    """Send a password reset email via Resend API. Returns True on success."""
     
-    smtp_email = os.getenv("SMTP_EMAIL", "")
-    smtp_password = os.getenv("SMTP_PASSWORD", "")
+    api_key = os.getenv("RESEND_API_KEY", "")
     
-    if not smtp_email or not smtp_password:
+    if not api_key:
         return False
     
-    subject = "InvoiceAI — Passwort zurücksetzen"
+    try:
+        import requests
+    except ImportError:
+        return False
     
     html_body = f"""
     <html>
@@ -35,17 +34,21 @@ def send_reset_email(to_email, username, reset_code):
     </html>
     """
     
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = smtp_email
-    msg["To"] = to_email
-    msg.attach(MIMEText(html_body, "html"))
+    url = "https://api.resend.com/emails"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "from": "InvoiceAI <onboarding@resend.dev>",
+        "to": [to_email],
+        "subject": "InvoiceAI — Passwort zurücksetzen",
+        "html": html_body
+    }
     
     try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(smtp_email, smtp_password)
-            server.sendmail(smtp_email, to_email, msg.as_string())
-        return True
+        resp = requests.post(url, json=payload, headers=headers, timeout=10)
+        return resp.status_code == 200
     except Exception as e:
         print(f"Email error: {e}")
         return False
