@@ -71,7 +71,7 @@ st.markdown("---")
 # --- STATS ---
 all_users = auth.get_all_users()
 total_users = len(all_users)
-total_credits = sum(u[1] for u in all_users)
+total_credits = sum(u[2] for u in all_users)
 
 c1, c2, c3 = st.columns(3)
 with c1:
@@ -103,7 +103,7 @@ st.markdown("---")
 st.subheader("👥 All Users")
 
 if all_users:
-    df = pd.DataFrame(all_users, columns=["Username", "Credits"])
+    df = pd.DataFrame(all_users, columns=["Username", "Email", "Credits"])
     st.dataframe(df, use_container_width=True, hide_index=True)
 else:
     st.info("No users registered yet.")

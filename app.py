@@ -412,9 +412,9 @@ def main():
 
         st.markdown('<div class="divider-gradient"></div>', unsafe_allow_html=True)
 
-        # --- LOGIN / REGISTER ---
+        # --- LOGIN / REGISTER / RESET ---
         st.markdown("### 🔐 Jetzt starten")
-        tab_login, tab_register = st.tabs(["🔑 Anmelden", "📝 Registrieren"])
+        tab_login, tab_register, tab_reset = st.tabs(["🔑 Anmelden", "📝 Registrieren", "🔄 Passwort vergessen"])
         
         with tab_login:
             login_user = st.text_input("Benutzername", key="login_user")
@@ -429,14 +429,45 @@ def main():
                     
         with tab_register:
             reg_user = st.text_input("Neuer Benutzername", key="reg_user")
+            reg_email = st.text_input("E-Mail-Adresse", key="reg_email", placeholder="ihre@email.de")
             reg_pass = st.text_input("Neues Passwort", type="password", key="reg_pass")
             if st.button("Registrieren & 10 Credits erhalten", type="primary", use_container_width=True):
-                success, msg = auth.register_user(reg_user, reg_pass, initial_credits=10)
+                success, msg = auth.register_user(reg_user, reg_pass, email=reg_email, initial_credits=10)
                 if success:
                     st.success("✅ Registrierung erfolgreich! Sie können sich jetzt anmelden.")
                     notifications.notify_new_user(reg_user)
                 else:
                     st.error(msg)
+
+        with tab_reset:
+            st.markdown("Geben Sie Ihre registrierte E-Mail-Adresse ein. Wir senden Ihnen einen Reset-Code.")
+            reset_email = st.text_input("E-Mail-Adresse", key="reset_email", placeholder="ihre@email.de")
+            
+            if "reset_token" not in st.session_state:
+                st.session_state.reset_token = None
+            if "reset_username" not in st.session_state:
+                st.session_state.reset_username = None
+            
+            if st.button("🔄 Reset-Code anfordern", use_container_width=True):
+                token, username = auth.generate_reset_token(reset_email)
+                if token:
+                    st.session_state.reset_token = token
+                    st.session_state.reset_username = username
+                    st.success(f"✅ Reset-Code generiert! Ihr Code: **{token[:8]}...** (In Produktion würde dieser per E-Mail gesendet)")
+                    st.info(f"Benutzername: **{username}**")
+                else:
+                    st.error("E-Mail-Adresse nicht gefunden.")
+            
+            if st.session_state.reset_token:
+                st.markdown("---")
+                new_pass = st.text_input("Neues Passwort eingeben", type="password", key="new_pass_reset")
+                if st.button("✅ Passwort zurücksetzen", type="primary", use_container_width=True):
+                    if auth.reset_password_with_token(st.session_state.reset_token, new_pass):
+                        st.success("✅ Passwort erfolgreich geändert! Sie können sich jetzt anmelden.")
+                        st.session_state.reset_token = None
+                        st.session_state.reset_username = None
+                    else:
+                        st.error("Ungültiger Reset-Code.")
 
         # --- FOOTER ---
         st.markdown('<div class="divider-gradient"></div>', unsafe_allow_html=True)
