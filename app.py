@@ -134,7 +134,7 @@ Make sure numerical values use a period (.) for decimals, not a comma (,), and h
 """
     try:
         response = client.chat.completions.create(
-            model="llama-3.2-90b-vision-preview",
+            model="llama-3.2-11b-vision-preview",
             messages=[
                 {
                     "role": "user",
