@@ -161,7 +161,7 @@ st.markdown('<div class="divider-gradient"></div>', unsafe_allow_html=True)
 STRIPE_LINKS = {
     "starter": "https://buy.stripe.com/test_00w9AT45w6Yz2hqfgz08g02",
     "professional": "https://buy.stripe.com/test_8x2bJ17hI5Uve085FZ08g01",
-    "enterprise": "https://buy.stripe.com/test_5kQeVd8lM5Uv7BK70708g00",
+    "enterprise": "https://buy.stripe.com/test_5kQeVd8lM5Uv7BK7O708g00",
 }
 
 st.markdown("### 🛒 Jetzt kaufen")
