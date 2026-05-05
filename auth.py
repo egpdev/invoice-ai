@@ -94,3 +94,40 @@ def deduct_credits(username, amount=1):
     conn.commit()
     conn.close()
     return True
+
+def add_credits(username, amount):
+    """Add credits to a user's account. Returns True if user exists."""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    c.execute("SELECT credits FROM users WHERE username = ?", (username,))
+    row = c.fetchone()
+    
+    if not row:
+        conn.close()
+        return False
+        
+    new_credits = row[0] + amount
+    c.execute("UPDATE users SET credits = ? WHERE username = ?", (new_credits, username))
+    conn.commit()
+    conn.close()
+    return True
+
+def get_all_users():
+    """Return a list of all users with their credit balances."""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT username, credits FROM users ORDER BY username")
+    rows = c.fetchall()
+    conn.close()
+    return rows
+
+def delete_user(username):
+    """Delete a user account."""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("DELETE FROM users WHERE username = ?", (username,))
+    conn.commit()
+    affected = c.rowcount
+    conn.close()
+    return affected > 0
