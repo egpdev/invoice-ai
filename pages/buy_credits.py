@@ -159,9 +159,9 @@ st.markdown('<div class="divider-gradient"></div>', unsafe_allow_html=True)
 # --- STRIPE PAYMENT LINKS ---
 # Replace these with your actual Stripe Payment Links
 STRIPE_LINKS = {
-    "starter": "https://buy.stripe.com/YOUR_STARTER_LINK",
-    "professional": "https://buy.stripe.com/YOUR_PRO_LINK",
-    "enterprise": "https://buy.stripe.com/YOUR_ENTERPRISE_LINK",
+    "starter": "https://buy.stripe.com/test_00w9AT45w6Yz2hqfgz08g02",
+    "professional": "https://buy.stripe.com/test_8x2bJ17hI5Uve085FZ08g01",
+    "enterprise": "https://buy.stripe.com/test_5kQeVd8lM5Uv7BK70708g00",
 }
 
 st.markdown("### 🛒 Jetzt kaufen")
