@@ -5,6 +5,7 @@ import pandas as pd
 import json
 import os
 import io
+import base64
 from dotenv import load_dotenv
 
 # Load environment variables if present
@@ -108,6 +109,59 @@ Invoice Text:
         st.error(f"{error_msg}: {e}")
         return None
 
+def parse_invoice_image(base64_image, mime_type, api_key, error_msg):
+    """Send image to Groq Vision API and request structured JSON output."""
+    client = openai.OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
+    
+    prompt = """
+You are an expert AI trained to extract structured financial data from German invoices or receipts (DATEV-style requirements).
+Extract the following information from the provided invoice image and return it STRICTLY as a JSON object.
+Do not include any explanation or markdown code blocks (like ```json), just output the raw JSON string.
+
+Keys required:
+- "Firma": Sender company name (string)
+- "Rechnungsdatum": Invoice date, formatted as YYYY-MM-DD if possible (string)
+- "Rechnungsnummer": Invoice number (string)
+- "Netto-Betrag": Amount without VAT (number)
+- "MwSt-Satz": VAT rate, e.g., 19 or 7 (number)
+- "MwSt-Betrag": VAT amount (number)
+- "Brutto-Betrag": Total amount including VAT (number)
+- "IBAN": IBAN for payment (string)
+- "Währung": Currency, e.g., "EUR" (string)
+
+If a field is not found, set its value to null.
+Make sure numerical values use a period (.) for decimals, not a comma (,), and have no currency symbols attached.
+"""
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.2-90b-vision-preview",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:{mime_type};base64,{base64_image}"
+                            }
+                        }
+                    ]
+                }
+            ],
+            temperature=0.0
+        )
+        content = response.choices[0].message.content.strip()
+        if content.startswith("```json"):
+            content = content[7:-3].strip()
+        elif content.startswith("```"):
+            content = content[3:-3].strip()
+            
+        return json.loads(content)
+    except Exception as e:
+        st.error(f"{error_msg} (Vision API): {e}")
+        return None
+
 def generate_datev_xml(df):
     """Generate a basic DATEV-compatible XML structure representing the invoices."""
     import xml.etree.ElementTree as ET
@@ -135,7 +189,7 @@ TRANSLATIONS = {
         "lang": "Language",
         "api_key": "Groq API Key",
         "fields_ext": "**Data Fields Extracted:**",
-        "upload": "Upload PDF Invoices",
+        "upload": "Upload Invoices / Receipts (PDF, JPG, PNG)",
         "process_btn": "🚀 Process Invoices",
         "clear_btn": "🗑️ Clear All",
         "warn_api": "Please enter your Groq API Key in the sidebar.",
@@ -164,7 +218,7 @@ TRANSLATIONS = {
         "lang": "Sprache",
         "api_key": "Groq API-Schlüssel",
         "fields_ext": "**Extrahierte Datenfelder:**",
-        "upload": "PDF-Rechnungen hochladen",
+        "upload": "Rechnungen / Belege hochladen (PDF, JPG, PNG)",
         "process_btn": "🚀 Rechnungen verarbeiten",
         "clear_btn": "🗑️ Alles löschen",
         "warn_api": "Bitte geben Sie Ihren Groq API-Schlüssel in der Seitenleiste ein.",
@@ -232,7 +286,7 @@ def main():
     st.title(t["title"])
     st.markdown(t["subtitle"])
 
-    uploaded_files = st.file_uploader(t["upload"], type="pdf", accept_multiple_files=True)
+    uploaded_files = st.file_uploader(t["upload"], type=["pdf", "png", "jpg", "jpeg"], accept_multiple_files=True)
 
     col_btn1, col_btn2 = st.columns([3, 1])
     
@@ -261,12 +315,18 @@ def main():
                     progress_bar.progress((i + 1) / len(uploaded_files))
                     continue
                 
-                text = extract_text_from_pdf(file)
-                if not text.strip():
-                    st.warning(t["warn_extract"].format(name=file.name))
-                    continue
-                    
-                parsed_json = parse_invoice_text(text, api_key, t["error_api"])
+                ext = file.name.split('.')[-1].lower()
+                
+                if ext == 'pdf':
+                    text = extract_text_from_pdf(file)
+                    if not text.strip():
+                        st.warning(t["warn_extract"].format(name=file.name))
+                        continue
+                    parsed_json = parse_invoice_text(text, api_key, t["error_api"])
+                else:
+                    base64_image = base64.b64encode(file.getvalue()).decode('utf-8')
+                    mime_type = "image/jpeg" if ext in ['jpg', 'jpeg'] else "image/png"
+                    parsed_json = parse_invoice_image(base64_image, mime_type, api_key, t["error_api"])
                 
                 if parsed_json:
                     parsed_json["Dateiname"] = file.name
