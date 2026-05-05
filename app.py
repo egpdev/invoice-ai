@@ -279,63 +279,63 @@ def main():
     if st.session_state.parsed_data:
         df = pd.DataFrame(st.session_state.parsed_data)
             
-            st.markdown(t["insights"])
-            m1, m2, m3 = st.columns(3)
-            
-            with m1:
-                st.metric(t["tot_inv"], len(df))
-            with m2:
-                try:
-                    total_brutto = df["Brutto-Betrag"].astype(float).sum()
-                    currency = df["Währung"].iloc[0] if "Währung" in df.columns else "EUR"
-                    st.metric(t["tot_vol"], f"{total_brutto:,.2f} {currency}")
-                except:
-                    st.metric(t["tot_vol"], "N/A")
-            with m3:
-                unique_firms = df["Firma"].nunique() if "Firma" in df.columns else 0
-                st.metric(t["uniq_ven"], unique_firms)
+        st.markdown(t["insights"])
+        m1, m2, m3 = st.columns(3)
+        
+        with m1:
+            st.metric(t["tot_inv"], len(df))
+        with m2:
+            try:
+                total_brutto = df["Brutto-Betrag"].astype(float).sum()
+                currency = df["Währung"].iloc[0] if "Währung" in df.columns else "EUR"
+                st.metric(t["tot_vol"], f"{total_brutto:,.2f} {currency}")
+            except:
+                st.metric(t["tot_vol"], "N/A")
+        with m3:
+            unique_firms = df["Firma"].nunique() if "Firma" in df.columns else 0
+            st.metric(t["uniq_ven"], unique_firms)
 
-            st.markdown("---")
+        st.markdown("---")
 
-            cols = ["Dateiname"] + [c for c in df.columns if c != "Dateiname"]
-            df = df[cols]
-            
-            st.subheader(t["grid_view"])
-            
-            # --- DATA VALIDATION ---
-            def highlight_errors(row):
-                try:
-                    netto = float(row.get("Netto-Betrag", 0) or 0)
-                    mwst = float(row.get("MwSt-Betrag", 0) or 0)
-                    brutto = float(row.get("Brutto-Betrag", 0) or 0)
-                    # Check math with small tolerance for float rounding
-                    if brutto > 0 and abs((netto + mwst) - brutto) > 0.05:
-                        return ['background-color: rgba(239, 68, 68, 0.3)'] * len(row)
-                except:
-                    pass
-                return [''] * len(row)
+        cols = ["Dateiname"] + [c for c in df.columns if c != "Dateiname"]
+        df = df[cols]
+        
+        st.subheader(t["grid_view"])
+        
+        # --- DATA VALIDATION ---
+        def highlight_errors(row):
+            try:
+                netto = float(row.get("Netto-Betrag", 0) or 0)
+                mwst = float(row.get("MwSt-Betrag", 0) or 0)
+                brutto = float(row.get("Brutto-Betrag", 0) or 0)
+                # Check math with small tolerance for float rounding
+                if brutto > 0 and abs((netto + mwst) - brutto) > 0.05:
+                    return ['background-color: rgba(239, 68, 68, 0.3)'] * len(row)
+            except:
+                pass
+            return [''] * len(row)
 
-            styled_df = df.style.apply(highlight_errors, axis=1)
-            st.dataframe(styled_df, use_container_width=True, hide_index=True)
+        styled_df = df.style.apply(highlight_errors, axis=1)
+        st.dataframe(styled_df, use_container_width=True, hide_index=True)
+        
+        st.subheader(t["export"])
+        col1, col2, col3 = st.columns(3)
+        
+        csv = df.to_csv(index=False, sep=";").encode('utf-8')
+        with col1:
+            st.download_button(label=t["dl_csv"], data=csv, file_name="invoices_parsed.csv", mime="text/csv")
             
-            st.subheader(t["export"])
-            col1, col2, col3 = st.columns(3)
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Invoices')
+        excel_data = output.getvalue()
+        
+        with col2:
+            st.download_button(label=t["dl_excel"], data=excel_data, file_name="invoices_parsed.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             
-            csv = df.to_csv(index=False, sep=";").encode('utf-8')
-            with col1:
-                st.download_button(label=t["dl_csv"], data=csv, file_name="invoices_parsed.csv", mime="text/csv")
-                
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='openpyxl') as writer:
-                df.to_excel(writer, index=False, sheet_name='Invoices')
-            excel_data = output.getvalue()
-            
-            with col2:
-                st.download_button(label=t["dl_excel"], data=excel_data, file_name="invoices_parsed.xlsx", mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                
-            xml_data = generate_datev_xml(df)
-            with col3:
-                st.download_button(label=t["dl_xml"], data=xml_data, file_name="invoices_datev.xml", mime="application/xml")
+        xml_data = generate_datev_xml(df)
+        with col3:
+            st.download_button(label=t["dl_xml"], data=xml_data, file_name="invoices_datev.xml", mime="application/xml")
 
 if __name__ == "__main__":
     main()
