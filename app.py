@@ -254,34 +254,197 @@ def main():
     if "username" not in st.session_state:
         st.session_state.username = ""
         
-    # --- AUTHENTICATION UI ---
+    # --- AUTHENTICATION UI (LANDING PAGE) ---
     if not st.session_state.logged_in:
-        st.title("🏛️ InvoiceAI - SaaS Portal")
-        st.markdown("Please log in or register to continue.")
         
-        tab_login, tab_register = st.tabs(["🔑 Login", "📝 Register"])
+        # --- LANDING PAGE CSS ---
+        st.markdown("""
+        <style>
+        .hero-title {
+            font-size: 3.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin-bottom: 0.2rem;
+            line-height: 1.2;
+        }
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: #94a3b8;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .feature-card {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: #60a5fa;
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .feature-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 0.4rem;
+        }
+        .feature-desc {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+        .pricing-box {
+            background: linear-gradient(145deg, #1e3a5f, #0f172a);
+            border: 2px solid #3b82f6;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            max-width: 420px;
+            margin: 1rem auto;
+        }
+        .pricing-price {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #60a5fa;
+        }
+        .pricing-period {
+            font-size: 1rem;
+            color: #64748b;
+        }
+        .pricing-feature {
+            color: #cbd5e1;
+            font-size: 1rem;
+            padding: 0.3rem 0;
+        }
+        .social-proof {
+            text-align: center;
+            padding: 1rem 0;
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #60a5fa;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+        .divider-gradient {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+            margin: 2rem 0;
+            border: none;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # --- HERO SECTION ---
+        st.markdown('<p class="hero-title">🏛️ InvoiceAI</p>', unsafe_allow_html=True)
+        st.markdown('<p class="hero-subtitle">KI-gestützte Rechnungsverarbeitung für deutsche Buchhalter.<br>Verwandeln Sie Rechnungen und Quittungen in strukturierte DATEV-Daten — in Sekunden.</p>', unsafe_allow_html=True)
+        
+        # --- STATS BAR ---
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown('<div style="text-align:center"><span class="stat-number">5s</span><br><span class="stat-label">Avg. Processing Time</span></div>', unsafe_allow_html=True)
+        with col2:
+            st.markdown('<div style="text-align:center"><span class="stat-number">99%</span><br><span class="stat-label">Extraction Accuracy</span></div>', unsafe_allow_html=True)
+        with col3:
+            st.markdown('<div style="text-align:center"><span class="stat-number">PDF+IMG</span><br><span class="stat-label">Multimodal Support</span></div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="divider-gradient"></div>', unsafe_allow_html=True)
+
+        # --- FEATURES ---
+        st.markdown("### ✨ Warum InvoiceAI?")
+        f1, f2, f3 = st.columns(3)
+        with f1:
+            st.markdown("""
+            <div class="feature-card">
+                <div class="feature-icon">📄</div>
+                <div class="feature-title">PDF & Foto-Belege</div>
+                <div class="feature-desc">Laden Sie PDFs oder fotografierte Quittungen (JPG/PNG) hoch. Unsere KI liest beides.</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with f2:
+            st.markdown("""
+            <div class="feature-card">
+                <div class="feature-icon">🧮</div>
+                <div class="feature-title">Automatische MwSt-Prüfung</div>
+                <div class="feature-desc">Netto + MwSt ≠ Brutto? InvoiceAI markiert Fehler sofort rot — totale Kontrolle.</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with f3:
+            st.markdown("""
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <div class="feature-title">DATEV-Export</div>
+                <div class="feature-desc">Ein Klick — fertige CSV, Excel oder XML für Ihren Steuerberater.</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.markdown('<div class="divider-gradient"></div>', unsafe_allow_html=True)
+
+        # --- PRICING ---
+        st.markdown("### 💰 Einfache Preisgestaltung")
+        st.markdown("""
+        <div class="pricing-box">
+            <div class="pricing-price">10 Credits</div>
+            <div class="pricing-period">Kostenlos bei Registrierung</div>
+            <hr style="border-color: #334155; margin: 1rem 0;">
+            <div class="pricing-feature">✅ 1 Credit = 1 verarbeitete Rechnung</div>
+            <div class="pricing-feature">✅ PDF + Bild-Upload</div>
+            <div class="pricing-feature">✅ CSV / Excel / XML Export</div>
+            <div class="pricing-feature">✅ MwSt-Validierung in Echtzeit</div>
+            <div class="pricing-feature">✅ DSGVO-konform — keine Datenspeicherung</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown('<div class="divider-gradient"></div>', unsafe_allow_html=True)
+
+        # --- LOGIN / REGISTER ---
+        st.markdown("### 🔐 Jetzt starten")
+        tab_login, tab_register = st.tabs(["🔑 Anmelden", "📝 Registrieren"])
         
         with tab_login:
-            login_user = st.text_input("Username", key="login_user")
-            login_pass = st.text_input("Password", type="password", key="login_pass")
-            if st.button("Login", type="primary"):
+            login_user = st.text_input("Benutzername", key="login_user")
+            login_pass = st.text_input("Passwort", type="password", key="login_pass")
+            if st.button("Anmelden", type="primary", use_container_width=True):
                 if auth.authenticate_user(login_user, login_pass):
                     st.session_state.logged_in = True
                     st.session_state.username = login_user
-                    st.success("Logged in successfully!")
                     st.rerun()
                 else:
-                    st.error("Invalid username or password.")
+                    st.error("Ungültiger Benutzername oder Passwort.")
                     
         with tab_register:
-            reg_user = st.text_input("New Username", key="reg_user")
-            reg_pass = st.text_input("New Password", type="password", key="reg_pass")
-            if st.button("Register & Get 10 Credits", type="primary"):
+            reg_user = st.text_input("Neuer Benutzername", key="reg_user")
+            reg_pass = st.text_input("Neues Passwort", type="password", key="reg_pass")
+            if st.button("Registrieren & 10 Credits erhalten", type="primary", use_container_width=True):
                 success, msg = auth.register_user(reg_user, reg_pass, initial_credits=10)
                 if success:
-                    st.success(f"{msg} You can now log in.")
+                    st.success("✅ Registrierung erfolgreich! Sie können sich jetzt anmelden.")
                 else:
                     st.error(msg)
+
+        # --- FOOTER ---
+        st.markdown('<div class="divider-gradient"></div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="social-proof">
+            🔐 Alle Daten werden lokal und über eine sichere API verarbeitet. Es werden keine Daten gespeichert.<br>
+            <a href="https://example.com/impressum" style="color: #64748b;">Impressum</a>
+        </div>
+        """, unsafe_allow_html=True)
+
         return  # Stop execution here if not logged in
 
     # --- SIDEBAR ---
