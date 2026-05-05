@@ -7,6 +7,7 @@ import os
 import io
 import base64
 from dotenv import load_dotenv
+import auth
 
 # Load environment variables if present
 load_dotenv()
@@ -244,10 +245,45 @@ TRANSLATIONS = {
 
 def main():
     apply_custom_style()
+    auth.init_db()
     
     if "parsed_data" not in st.session_state:
         st.session_state.parsed_data = []
+    if "logged_in" not in st.session_state:
+        st.session_state.logged_in = False
+    if "username" not in st.session_state:
+        st.session_state.username = ""
         
+    # --- AUTHENTICATION UI ---
+    if not st.session_state.logged_in:
+        st.title("🏛️ InvoiceAI - SaaS Portal")
+        st.markdown("Please log in or register to continue.")
+        
+        tab_login, tab_register = st.tabs(["🔑 Login", "📝 Register"])
+        
+        with tab_login:
+            login_user = st.text_input("Username", key="login_user")
+            login_pass = st.text_input("Password", type="password", key="login_pass")
+            if st.button("Login", type="primary"):
+                if auth.authenticate_user(login_user, login_pass):
+                    st.session_state.logged_in = True
+                    st.session_state.username = login_user
+                    st.success("Logged in successfully!")
+                    st.rerun()
+                else:
+                    st.error("Invalid username or password.")
+                    
+        with tab_register:
+            reg_user = st.text_input("New Username", key="reg_user")
+            reg_pass = st.text_input("New Password", type="password", key="reg_pass")
+            if st.button("Register & Get 10 Credits", type="primary"):
+                success, msg = auth.register_user(reg_user, reg_pass, initial_credits=10)
+                if success:
+                    st.success(f"{msg} You can now log in.")
+                else:
+                    st.error(msg)
+        return  # Stop execution here if not logged in
+
     # --- SIDEBAR ---
     with st.sidebar:
         # Display the generated placeholder logo
@@ -255,14 +291,23 @@ def main():
         if os.path.exists(logo_path):
             st.image(logo_path, use_column_width=True)
             
+        st.header("👤 Profile")
+        st.markdown(f"**User:** {st.session_state.username}")
+        user_credits = auth.get_credits(st.session_state.username)
+        st.markdown(f"**Credits:** {user_credits}")
+        
+        if st.button("🚪 Logout"):
+            st.session_state.logged_in = False
+            st.session_state.username = ""
+            st.rerun()
+
+        st.markdown("---")
         st.header("⚙️ Settings")
         lang_choice = st.radio("Language / Sprache", ["EN", "DE"], horizontal=True)
         t = TRANSLATIONS[lang_choice]
         
-        st.markdown("---")
-        st.header(t["config"])
-        default_api_key = os.getenv("GROQ_API_KEY", "")
-        api_key = st.text_input(t["api_key"], value=default_api_key, type="password")
+        # API key is now strictly pulled from the server environment
+        api_key = os.getenv("GROQ_API_KEY", "")
         
         st.markdown("---")
         st.markdown(
@@ -308,6 +353,12 @@ def main():
             status_text = st.empty()
     
             for i, file in enumerate(uploaded_files):
+                # Check credits before processing
+                current_credits = auth.get_credits(st.session_state.username)
+                if current_credits <= 0:
+                    st.error("You have 0 credits left. Please contact support to recharge.")
+                    break
+                    
                 status_text.text(t["proc_msg"].format(name=file.name, i=i+1, total=len(uploaded_files)))
                 
                 # Prevent duplicate processing of the same file
@@ -331,6 +382,8 @@ def main():
                 if parsed_json:
                     parsed_json["Dateiname"] = file.name
                     st.session_state.parsed_data.append(parsed_json)
+                    # Deduct 1 credit for successful parse
+                    auth.deduct_credits(st.session_state.username, 1)
                     
                 progress_bar.progress((i + 1) / len(uploaded_files))
                 
