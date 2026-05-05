@@ -9,6 +9,7 @@ import base64
 from dotenv import load_dotenv
 import auth
 import notifications
+import email_service
 
 # Load environment variables if present
 load_dotenv()
@@ -448,13 +449,19 @@ def main():
             if "reset_username" not in st.session_state:
                 st.session_state.reset_username = None
             
-            if st.button("🔄 Reset-Code anfordern", use_container_width=True):
+            if st.button("🔄 Reset-Code per E-Mail senden", use_container_width=True):
                 token, username = auth.generate_reset_token(reset_email)
                 if token:
+                    short_code = token[:8].upper()
                     st.session_state.reset_token = token
                     st.session_state.reset_username = username
-                    st.success(f"✅ Reset-Code generiert! Ihr Code: **{token[:8]}...** (In Produktion würde dieser per E-Mail gesendet)")
-                    st.info(f"Benutzername: **{username}**")
+                    # Try to send email
+                    email_sent = email_service.send_reset_email(reset_email, username, short_code)
+                    if email_sent:
+                        st.success(f"✅ Reset-Code wurde an **{reset_email}** gesendet! Prüfen Sie Ihren Posteingang.")
+                    else:
+                        st.success(f"✅ Ihr Reset-Code: **{short_code}**")
+                        st.caption("(E-Mail-Versand nicht konfiguriert — Code wird hier angezeigt)")
                 else:
                     st.error("E-Mail-Adresse nicht gefunden.")
             
