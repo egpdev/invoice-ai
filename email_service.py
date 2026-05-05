@@ -5,6 +5,14 @@ def send_reset_email(to_email, username, reset_code):
     
     api_key = os.getenv("RESEND_API_KEY", "")
     
+    # Fallback for Streamlit Cloud secrets
+    if not api_key:
+        try:
+            import streamlit as st
+            api_key = st.secrets.get("RESEND_API_KEY", "")
+        except:
+            pass
+            
     if not api_key:
         return False
     
