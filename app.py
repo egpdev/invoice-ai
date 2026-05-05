@@ -8,6 +8,7 @@ import io
 import base64
 from dotenv import load_dotenv
 import auth
+import notifications
 
 # Load environment variables if present
 load_dotenv()
@@ -433,6 +434,7 @@ def main():
                 success, msg = auth.register_user(reg_user, reg_pass, initial_credits=10)
                 if success:
                     st.success("✅ Registrierung erfolgreich! Sie können sich jetzt anmelden.")
+                    notifications.notify_new_user(reg_user)
                 else:
                     st.error(msg)
 
@@ -519,7 +521,8 @@ def main():
                 # Check credits before processing
                 current_credits = auth.get_credits(st.session_state.username)
                 if current_credits <= 0:
-                    st.error("You have 0 credits left. Please contact support to recharge.")
+                    st.error("Sie haben 0 Credits. Bitte kaufen Sie neue Credits auf der Seite 'Buy Credits'.")
+                    notifications.notify_credits_empty(st.session_state.username)
                     break
                     
                 status_text.text(t["proc_msg"].format(name=file.name, i=i+1, total=len(uploaded_files)))
